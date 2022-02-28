@@ -11,8 +11,10 @@
 
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+  <!-- data table css -->
   <link  href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css" rel="stylesheet">
 
+  <!-- data table js -->
   <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
 
 </head>
@@ -25,7 +27,7 @@
   <div class="card">
 
     <div class="card-header text-center font-weight-bold">
-      <h2>Laravel 8 Ajax Book CRUD with DataTable Example Tutorial</h2>
+      <h2>Laravel 8 Ajax CRUD with DataTable</h2>
     </div>
 
     <div class="card-body">
@@ -38,12 +40,13 @@
                  <th>Book Title</th>
                  <th>Code</th>
                  <th>Author</th>
+                 <th>Status</th>
+                 <th>Status update</th>
                  <th>Created at</th>
                  <th>Action</th>
               </tr>
            </thead>
         </table>
-
     </div>
 
   </div>
@@ -108,40 +111,55 @@
      
  $(document).ready( function () {
 
+//=== ajax csrf starts ===
     $.ajaxSetup({
         headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
-//=== image preview before upload ===
+//=== ajax csrf ends ===
+
+
+
+//=== image preview before upload starts ===
     $('#image').change(function(){
-           
+    //selecting the input field with id= "image", including jquery change() method
     let reader = new FileReader();
-
-    reader.onload = (e) => { 
-
-      $('#preview-image').attr('src', e.target.result); 
+    //creating a object named FileReader(), can access the files of input field with type="file"
+    reader.onload = (e) => {
+    //FileReader.onload is a handler for FileReader.load_event,
+    //this event executed everytime when the reading operation is successfully completed.
+      $('#preview-image').attr('src', e.target.result);
+      //selecting the img tag with id="preview-image"
+      //image of input field named with id= "image" will be shown here in
     }
 
     reader.readAsDataURL(this.files[0]); 
+    //read only 1st image
   
    });
+//=== image preview before upload ends ===
 
-//===  to get data from database table and display with html table with pagination ===
+
+
+//===  get data from database table and display with html table with pagination ===
     $('#datatable-ajax-crud').DataTable({
+      //selecting the table with id="datatable-ajax-crud" and including Datatable in it
            processing: true,
            serverSide: true,
            ajax: "{{ url('ajax-crud-image-upload') }}",
            columns: [
-                    {data: 'id', name: 'id', 'visible': false},
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                    //{ data: 'id', name: 'id', 'visible': false},
                     { data: 'image', name: 'image' , orderable: false},
                     { data: 'title', name: 'title' },
                     { data: 'code', name: 'code' },
                     { data: 'author', name: 'author' },
-                    { data: 'created_at', name: 'created_at' },
-                    {data: 'action', name: 'action', orderable: false},
-                 ],
-          order: [[0, 'desc']]
+                    { data: 'status', name: 'status' },
+                    { data: 'active', name: 'active' },
+                    { data: 'created_at', name: 'created_at', 'visible': false},
+                    { data: 'action', name: 'action', orderable: false},
+                 ]
     });
 
 //=== add, edit, delete data using ajax with datatable ===
@@ -200,6 +218,10 @@
        }
 
     });
+
+
+
+    
 
    $('#addEditBookForm').submit(function(e) {
 

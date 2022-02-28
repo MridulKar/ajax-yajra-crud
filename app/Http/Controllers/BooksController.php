@@ -4,20 +4,65 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Book;
-
-use Datatables;
+use DataTables;
 
 class BooksController extends Controller
 {
     public function index()
     {
-        if (request()->ajax()) {
-            return datatables()->of(Book::select('*'))
-                ->addColumn('action', 'book-action')
-                ->addColumn('image', 'show-image')
-                ->rawColumns(['action', 'image'])
-                ->addIndexColumn()
-                ->make(true);
+        // $books = Book::all();
+        // return Datatables()->of($books)
+        // ->addIndexColumn()
+
+        // ->addColumn('status', function($book) {
+        //     $status = '';
+        //     if($book->status == 1){
+        //         $status .= '<span style="background-color: #97df1a; border-radius: 3px; padding: 3px;">Active</span>';
+        //     }else{
+        //         $status .= '<span style="background-color: #fe7472; border-radius: 3px; padding: 3px;">Inactive</span>';
+        //     }
+        //     return $status;
+        // })
+
+        // ->addColumn('action', 'book-action')
+        // ->addColumn('image', 'show-image')
+        // ->rawColumns(['status', 'action', 'image'])
+        // ->make(true);
+
+        if (request()->ajax()) { 
+            $books = Book::all();
+            return DataTables()->of($books)
+            ->addIndexColumn()
+    
+            ->addColumn('status', function($book) {
+                $status = '';
+                if($book->status == 1){
+                    $status .= '<span style="background-color: #97df1a; border-radius: 3px; padding: 3px;">Active</span>';
+                }else{
+                    $status .= '<span style="background-color: #fe7472; border-radius: 3px; padding: 3px;">Inactive</span>';
+                }
+                return $status;
+            })
+
+            ->addColumn('active', function($book){
+                if($book->status == 1){
+                    $status = ' <a href="book/status/'.$book->id.'" class="btn btn-danger" title="Click to Deactive class" style="padding: 2px;"> 
+                    update
+                                </a> ';
+                }else{
+                    $status = ' <a href="book/status/'.$book->id.'" class="btn btn-success" title="Click to Deactive class" style="padding: 2px;"> 
+                                   update
+                                </a>';
+                }
+
+                return $status;
+            })
+    
+            ->addColumn('action', 'book-action')
+            ->addColumn('image', 'show-image')
+            
+            ->rawColumns(['status','action', 'image','active'])
+            ->make(true);
         }
         return view('book-list');
     }
@@ -67,5 +112,21 @@ class BooksController extends Controller
         $book = Book::where('id',$request->id)->delete();
         
         return Response()->json($book);
+    }
+
+    //===Status Active Inactive===
+
+    public function status($id){
+        $book = Book::find($id);
+
+        if($book->status == 1){
+            $book->status = 0;
+        }
+        else{
+            $book->status = 1;
+        }
+        
+        $book -> save();
+        return redirect()->route('ajax.dataTable')->with('message','Data updated Successfully');
     }
 }
